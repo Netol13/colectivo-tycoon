@@ -6,6 +6,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage:WaitForChild("Config"))
+local Theme = require(ReplicatedStorage:WaitForChild("Theme"))
 
 local PlotBuilder = {}
 
@@ -232,8 +233,8 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 	-- Piso del plot.
 	local base = part({
 		Size = Vector3.new(plotWidth, 1, 78),
-		Color = Color3.fromRGB(58, 58, 64),
-		Material = Enum.Material.SmoothPlastic,
+		Color = Theme.Palette.Concrete,
+		Material = Theme.Mat.Wall,
 	})
 	base.CFrame = origin * CFrame.new(0, -0.5, 0)
 	base.Parent = model
@@ -303,27 +304,31 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 			Color = lineaCfg.Color,
 			Material = Enum.Material.Metal,
 		})
-		dropper.CFrame = origin * CFrame.new(x, 9, -30)
+		dropper.CFrame = origin * CFrame.new(x, 4, -30)
 		dropper.Parent = model
 
-		-- Rampa (la "ruta") por la que ruedan los pasajes hasta la terminal.
-		local hi = (origin * CFrame.new(x, 8, -27)).Position
-		local lo = (origin * CFrame.new(x, 2, 26)).Position
+		-- Pista PLANA (calle) por la que viaja el colectivo hasta la terminal.
+		-- Misma altura en los dos extremos = sin pendiente.
+		local busY = 0.6
+		local hi = (origin * CFrame.new(x, busY, -27)).Position
+		local lo = (origin * CFrame.new(x, busY, 26)).Position
 		local mid = hi:Lerp(lo, 0.5)
 		local len = (lo - hi).Magnitude
 		local rampCF = CFrame.lookAt(mid, lo)
 
-		local floor = part({ Size = Vector3.new(8, 1, len), Color = Color3.fromRGB(88, 88, 94) })
+		local floor = part({
+			Size = Vector3.new(8, 1, len),
+			Color = Theme.Palette.Asphalt,
+			Material = Theme.Mat.Road,
+		})
 		floor.CFrame = rampCF
 		floor.Parent = model
 
-		local wallL =
-			part({ Size = Vector3.new(0.6, 3, len), Color = Color3.fromRGB(120, 120, 126) })
+		local wallL = part({ Size = Vector3.new(0.6, 3, len), Color = Theme.Palette.Curb })
 		wallL.CFrame = rampCF * CFrame.new(-4, 1.5, 0)
 		wallL.Parent = model
 
-		local wallR =
-			part({ Size = Vector3.new(0.6, 3, len), Color = Color3.fromRGB(120, 120, 126) })
+		local wallR = part({ Size = Vector3.new(0.6, 3, len), Color = Theme.Palette.Curb })
 		wallR.CFrame = rampCF * CFrame.new(4, 1.5, 0)
 		wallR.Parent = model
 

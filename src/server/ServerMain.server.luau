@@ -18,6 +18,7 @@ local OfflineService = require(ServerScriptService:WaitForChild("OfflineService"
 local EventService = require(ServerScriptService:WaitForChild("EventService"))
 local RebirthService = require(ServerScriptService:WaitForChild("RebirthService"))
 local DailyService = require(ServerScriptService:WaitForChild("DailyService"))
+local EnvironmentService = require(ServerScriptService:WaitForChild("EnvironmentService"))
 
 -- Lugares fijos donde se construyen los plots (separados para que no se toquen).
 local PLOT_SLOTS = {}
@@ -105,6 +106,9 @@ local function onPlayerRemoving(player: Player)
 	DataManager.release(player)
 	PlayerState.clear(player)
 end
+
+-- Iluminación + mundo (una sola vez, antes de que entren los jugadores).
+EnvironmentService.setup()
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(onPlayerRemoving)

@@ -28,7 +28,9 @@ function BusModel.build(color: Color3, valor: number, tier: number?): Model
 	model.Name = "Bus"
 
 	-- Cuerpo (PrimaryPart). Largo en Z = dirección de avance.
-	local body = makePart("Body", Vector3.new(3, 2, 6), color, model)
+	-- Los colectivos más valiosos son un poco más largos (feedback de forma).
+	local largo = 6 + math.clamp(valor / 60, 0, 3)
+	local body = makePart("Body", Vector3.new(3, 2, largo), color, model)
 	body.Material = (tier and tier >= 3) and Enum.Material.Neon or Enum.Material.SmoothPlastic
 	body.CFrame = CFrame.new()
 	model.PrimaryPart = body
@@ -59,23 +61,10 @@ function BusModel.build(color: Color3, valor: number, tier: number?): Model
 		wheel.CFrame = body.CFrame * CFrame.new(off)
 	end
 
-	-- Cartel con el valor del pasaje.
-	local bb = Instance.new("BillboardGui")
-	bb.Adornee = body
-	bb.Size = UDim2.fromScale(2.4, 1)
-	bb.StudsOffset = Vector3.new(0, 2, 0)
-	bb.MaxDistance = 70
-	bb.Parent = body
-
-	local tl = Instance.new("TextLabel")
-	tl.Size = UDim2.fromScale(1, 1)
-	tl.BackgroundTransparency = 1
-	tl.Font = Enum.Font.FredokaOne
-	tl.TextColor3 = Color3.fromRGB(255, 255, 255)
-	tl.TextStrokeTransparency = 0.4
-	tl.TextScaled = true
-	tl.Text = "$" .. valor
-	tl.Parent = bb
+	-- Faros neón adelante (detalle, sin cartel de valor encima del bus).
+	local faro = makePart("Faro", Vector3.new(3.05, 0.5, 0.4), Color3.fromRGB(255, 245, 200), model)
+	faro.Material = Enum.Material.Neon
+	faro.CFrame = body.CFrame * CFrame.new(0, -0.4, -largo / 2)
 
 	return model
 end

@@ -15,6 +15,17 @@
       "StarterPlayerScripts": {
         "$path": "src/client"
       }
+    },
+
+    "Lighting": {
+      "$className": "Lighting"
+    },
+
+    "Workspace": {
+      "$className": "Workspace",
+      "$properties": {
+        "StreamingEnabled": true
+      }
     }
   }
 }
