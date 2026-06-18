@@ -59,7 +59,7 @@ function PurchaseService.bind(player: Player, plot: any, plata: IntValue, data: 
 				refs.boton = nil
 			end
 
-			TycoonService.activateLinea(plot, lineaCfg)
+			TycoonService.activateLinea(player, plot, lineaCfg, data)
 			Net.event("PurchaseFX"):FireClient(player, pos, lineaCfg.Color)
 			Net.event("Notify"):FireClient(player, "bought", "good", lineaCfg.Nombre)
 			Stats.update(player)

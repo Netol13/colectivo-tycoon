@@ -1,15 +1,17 @@
 --!strict
 -- TycoonService.luau  (ServerScriptService.TycoonService)
--- El corazón del loop: genera pasajes en cada línea activa y los cobra en la
--- terminal. TODO corre en el servidor (server-authoritative): el valor, el
--- multiplicador de rebirth y el del evento los decide el servidor.
--- Cuando cobra, avisa al cliente para que muestre el numerito y el sonido.
+-- Genera los minicolectivos de cada línea y los hace viajar por la ruta hasta
+-- la terminal con TweenService (anclados, sin física: nunca se vuelcan ni
+-- laguean). Al llegar, la plata NO se cobra sola: se ACUMULA en la terminal y
+-- el jugador la cobra a mano (CollectService). Todo server-authoritative.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Debris = game:GetService("Debris")
+local TweenService = game:GetService("TweenService")
 local Config = require(ReplicatedStorage:WaitForChild("Config"))
-local Net = require(ReplicatedStorage:WaitForChild("Net"))
+local Format = require(ReplicatedStorage:WaitForChild("Format"))
 local EventService = require(script.Parent:WaitForChild("EventService"))
+local BusModel = require(script.Parent:WaitForChild("BusModel"))
+local PlayerState = require(script.Parent:WaitForChild("PlayerState"))
 
 local TycoonService = {}
 
@@ -17,22 +19,55 @@ local function multiplier(data: any): number
 	return 1 + (data.Renovaciones or 0) * Config.Rebirth.BonusPorRenovacion
 end
 
--- Genera un "pasaje" (pelotita) en lo alto de la rampa de una línea.
-local function generarPasaje(plot: any, refs: any, lineaCfg: any)
-	local pasaje = Instance.new("Part")
-	pasaje.Shape = Enum.PartType.Ball
-	pasaje.Size = Vector3.new(1.6, 1.6, 1.6)
-	-- Durante "Hora Pico" los pasajes son dorados (señal visual del evento).
-	pasaje.Color = EventService.isActive() and Config.Evento.TinteColor or lineaCfg.Color
-	pasaje.Material = Enum.Material.Neon
-	pasaje.CustomPhysicalProperties = PhysicalProperties.new(0.7, 0.1, 0.3)
-	pasaje:SetAttribute("Value", lineaCfg.ValorPasaje)
-	pasaje.CFrame = refs.dropper.CFrame * CFrame.new(0, 3, 4)
-	pasaje.Parent = plot.pasajes
-	Debris:AddItem(pasaje, 25)
+-- Llega un colectivo a la terminal: acumula su valor en "pending" (cobro manual).
+local function onArrive(player: Player, plot: any, valor: number, data: any)
+	local state = PlayerState.get(player)
+	if not state then
+		return
+	end
+	local final = math.floor(valor * multiplier(data) * EventService.getMultiplier())
+	state.pending += final
+	plot.pendingLabel.Text = Format.money(state.pending)
 end
 
-function TycoonService.activateLinea(plot: any, lineaCfg: any)
+local function spawnBus(player: Player, plot: any, refs: any, lineaCfg: any, data: any)
+	if refs.live >= Config.Bus.MaxEnTransito then
+		return -- ya hay demasiados en la ruta; esperamos (cuida el celular)
+	end
+	refs.live += 1
+
+	local color = EventService.isActive() and Config.Evento.TinteColor or lineaCfg.Color
+	local bus = BusModel.build(color, lineaCfg.ValorPasaje, data.Renovaciones)
+	bus:PivotTo(refs.busStart)
+	bus.Parent = plot.pasajes
+
+	-- Movemos el bus tweeneando un CFrameValue (TweenService no anima Models).
+	local cfv = Instance.new("CFrameValue")
+	cfv.Value = refs.busStart
+	cfv.Changed:Connect(function(v)
+		if bus.Parent then -- por si el plot se reconstruyó (rebirth) y ya se destruyó
+			bus:PivotTo(v)
+		end
+	end)
+
+	local travel = refs.routeLen / Config.Bus.Velocidad
+	local tween = TweenService:Create(
+		cfv,
+		TweenInfo.new(travel, Enum.EasingStyle.Linear),
+		{ Value = refs.busEnd }
+	)
+	tween.Completed:Connect(function()
+		refs.live -= 1
+		cfv:Destroy()
+		if plot.model.Parent ~= nil then
+			onArrive(player, plot, lineaCfg.ValorPasaje, data)
+		end
+		bus:Destroy()
+	end)
+	tween:Play()
+end
+
+function TycoonService.activateLinea(player: Player, plot: any, lineaCfg: any, data: any)
 	local refs = plot.lineas[lineaCfg.Id]
 	if not refs or refs.activa then
 		return
@@ -40,37 +75,16 @@ function TycoonService.activateLinea(plot: any, lineaCfg: any)
 	refs.activa = true
 	task.spawn(function()
 		while refs.activa and plot.model.Parent ~= nil do
-			generarPasaje(plot, refs, lineaCfg)
+			spawnBus(player, plot, refs, lineaCfg, data)
 			task.wait(lineaCfg.Intervalo)
 		end
 	end)
 end
 
-function TycoonService.start(player: Player, plot: any, plata: IntValue, data: any)
-	plot.collector.Touched:Connect(function(hit: BasePart)
-		local value = hit:GetAttribute("Value")
-		if not value then
-			return
-		end
-		if hit:GetAttribute("Collected") then
-			return
-		end
-		hit:SetAttribute("Collected", true)
-		local pos = hit.Position -- guardar ANTES de destruir
-		hit:Destroy()
-
-		-- El servidor decide cuánto vale: base × rebirth × evento.
-		local final = math.floor(value * multiplier(data) * EventService.getMultiplier())
-		plata.Value += final
-		data.Cash = plata.Value
-
-		-- Avisar al cliente dueño para el numerito flotante + sonido.
-		Net.event("CollectFX"):FireClient(player, pos, final, EventService.isActive())
-	end)
-
+function TycoonService.start(player: Player, plot: any, data: any)
 	for _, lineaCfg in ipairs(Config.Lineas) do
 		if data.Owned[lineaCfg.Id] then
-			TycoonService.activateLinea(plot, lineaCfg)
+			TycoonService.activateLinea(player, plot, lineaCfg, data)
 		end
 	end
 end

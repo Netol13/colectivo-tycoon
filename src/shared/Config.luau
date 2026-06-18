@@ -67,6 +67,13 @@ Config.Lineas = {
 	},
 }
 
+-- ── MINICOLECTIVOS ─────────────────────────────────────────────────────
+-- Cada línea larga un minicolectivo que viaja por la ruta hasta la terminal.
+Config.Bus = {
+	Velocidad = 18, -- studs por segundo (el tiempo de viaje sale de la distancia)
+	MaxEnTransito = 4, -- máximo de colectivos a la vez por línea (cuida el celular)
+}
+
 -- ── REBIRTH ("Renovar Flota") ──────────────────────────────────────────
 -- El loop infinito: reiniciás las líneas a cambio de un multiplicador
 -- permanente. Es lo que evita que el juego "se termine" al comprar todo.
@@ -106,6 +113,96 @@ Config.Evento = {
 	DuracionSeg = 120, -- dura 2 minutos
 	CadaSeg = 600, -- aparece cada 10 minutos
 	TinteColor = Color3.fromRGB(255, 215, 0), -- pasajes dorados durante el evento
+}
+
+-- ── CONSTRUCCIÓN (paredes, luces, puerta, decoración) ──────────────────
+-- Cada estructura se compra con un botón que la "levanta" en su lugar. Se
+-- guarda en Owned (igual que las líneas) y se reconstruye al volver a entrar.
+-- Offset = posición RELATIVA al centro del plot. Orden = dependencia (lo que
+-- tiene "Requiere" aparece recién cuando ya compraste lo anterior).
+Config.Builds = {
+	{
+		Id = "MuroFondo",
+		Nombre = "Muro de fondo",
+		Precio = 150,
+		Requiere = nil,
+		Kind = "wall",
+		Offset = CFrame.new(0, 3.5, -40),
+		Size = Vector3.new(82, 7, 1),
+		Color = Color3.fromRGB(74, 74, 84),
+		Material = Enum.Material.Concrete,
+	},
+	{
+		Id = "MuroIzq",
+		Nombre = "Muro izquierdo",
+		Precio = 180,
+		Requiere = "MuroFondo",
+		Kind = "wall",
+		Offset = CFrame.new(-40, 3.5, 0),
+		Size = Vector3.new(1, 7, 80),
+		Color = Color3.fromRGB(74, 74, 84),
+		Material = Enum.Material.Concrete,
+	},
+	{
+		Id = "MuroDer",
+		Nombre = "Muro derecho",
+		Precio = 180,
+		Requiere = "MuroFondo",
+		Kind = "wall",
+		Offset = CFrame.new(40, 3.5, 0),
+		Size = Vector3.new(1, 7, 80),
+		Color = Color3.fromRGB(74, 74, 84),
+		Material = Enum.Material.Concrete,
+	},
+	{
+		Id = "Luz1",
+		Nombre = "Luz",
+		Precio = 350,
+		Requiere = "MuroIzq",
+		Kind = "light",
+		Offset = CFrame.new(-30, 0, -38),
+	},
+	{
+		Id = "Luz2",
+		Nombre = "Luz",
+		Precio = 350,
+		Requiere = "MuroDer",
+		Kind = "light",
+		Offset = CFrame.new(30, 0, -38),
+	},
+	{
+		Id = "Cartel",
+		Nombre = "Cartel luminoso",
+		Precio = 500,
+		Requiere = "MuroFondo",
+		Kind = "deco",
+		Offset = CFrame.new(0, 9, -39.4),
+		Size = Vector3.new(24, 6, 0.6),
+		Color = Color3.fromRGB(214, 84, 32),
+		Material = Enum.Material.Neon,
+	},
+	{
+		Id = "PuertaLaser",
+		Nombre = "Puerta láser",
+		Precio = 800,
+		Requiere = "MuroFondo",
+		Kind = "door",
+		Offset = CFrame.new(0, 0, 40),
+	},
+	{
+		Id = "Ayudante",
+		Nombre = "Cobrador automático",
+		Precio = 3000,
+		Requiere = "MuroFondo",
+		Kind = "helper",
+		Offset = CFrame.new(-16, 2.5, 26),
+	},
+}
+
+-- El "Cobrador automático" cobra la terminal solo cada tantos segundos (para
+-- que no tengas que estar reclamando a mano todo el tiempo / estando AFK).
+Config.Ayudante = {
+	IntervaloSeg = 5,
 }
 
 -- ── AUDIO ──────────────────────────────────────────────────────────────

@@ -59,6 +59,10 @@ local function onPlayerAdded(player: Player)
 	local plata = Instance.new("IntValue")
 	plata.Name = Config.Currency.Name
 	plata.Parent = leaderstats
+	-- Renovaciones también en el leaderboard nativo (compite con los del server).
+	local renov = Instance.new("IntValue")
+	renov.Name = "Renov."
+	renov.Parent = leaderstats
 	leaderstats.Parent = player
 
 	-- Datos guardados.

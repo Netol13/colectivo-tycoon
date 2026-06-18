@@ -23,6 +23,7 @@ local EVENTS = {
 	"RequestDaily", -- client -> server: reclamar recompensa diaria
 	"OfflineEarnings", -- server -> client: ganancias mientras no estabas
 	"EventState", -- server -> client: evento activo (hora pico, etc.)
+	"LaserToggle", -- server -> client: se prendieron/apagaron los láseres (FX/sonido)
 }
 
 local folder: Folder

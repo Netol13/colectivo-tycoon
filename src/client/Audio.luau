@@ -57,7 +57,8 @@ function Audio.collect()
 		streak = 0
 	end
 	lastCollect = now
-	play(Config.Audio.Collect, 1 + math.min(streak * 0.06, 0.6))
+	-- Sube poquito el tono con la racha, con tope bajo (antes se ponía chillón).
+	play(Config.Audio.Collect, 1 + math.min(streak * 0.025, 0.18))
 end
 
 function Audio.buy()

@@ -35,6 +35,12 @@ function Stats.update(player: Player)
 	player:SetAttribute("PerMin", math.floor(perMin))
 	player:SetAttribute("Multiplier", mult)
 	player:SetAttribute("Renovaciones", data.Renovaciones or 0)
+	-- Reflejar las renovaciones en el leaderboard nativo de Roblox.
+	local ls = player:FindFirstChild("leaderstats")
+	local renov = ls and ls:FindFirstChild("Renov.")
+	if renov then
+		(renov :: IntValue).Value = data.Renovaciones or 0
+	end
 
 	-- Meta: la próxima línea a comprar, o renovar la flota si ya están todas.
 	local nextLinea = nil

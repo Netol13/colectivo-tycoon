@@ -8,6 +8,10 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local PlotBuilder = require(ServerScriptService:WaitForChild("PlotBuilder"))
 local TycoonService = require(ServerScriptService:WaitForChild("TycoonService"))
 local PurchaseService = require(ServerScriptService:WaitForChild("PurchaseService"))
+local CollectService = require(ServerScriptService:WaitForChild("CollectService"))
+local BuildService = require(ServerScriptService:WaitForChild("BuildService"))
+local LaserService = require(ServerScriptService:WaitForChild("LaserService"))
+local HelperService = require(ServerScriptService:WaitForChild("HelperService"))
 local PlayerState = require(ServerScriptService:WaitForChild("PlayerState"))
 local Stats = require(ServerScriptService:WaitForChild("Stats"))
 
@@ -24,9 +28,14 @@ end
 function PlotService.setup(player: Player, state: any): any
 	local plot = PlotBuilder.build(player, state.slot.cf)
 	state.plot = plot
+	state.pending = 0 -- plata acumulada en la terminal, sin cobrar (no se guarda)
 	player.RespawnLocation = plot.spawn
-	TycoonService.start(player, plot, state.plata, state.data)
+	TycoonService.start(player, plot, state.data)
 	PurchaseService.bind(player, plot, state.plata, state.data)
+	CollectService.bind(player, plot, state.plata, state.data)
+	BuildService.bind(player, plot, state.plata, state.data)
+	LaserService.setup(player, plot)
+	HelperService.setup(player, plot, state.data)
 	teleport(player, plot)
 	Stats.update(player)
 	return plot

@@ -37,6 +37,8 @@ local STRINGS: { [string]: Strings } = {
 		settings = "Ajustes",
 		music = "Música",
 		sfx = "Sonidos",
+		laser_on = "🔴 Láseres activados",
+		laser_off = "Láseres apagados",
 	},
 	en = {
 		money_per_min = "%s/min",
@@ -64,6 +66,8 @@ local STRINGS: { [string]: Strings } = {
 		settings = "Settings",
 		music = "Music",
 		sfx = "SFX",
+		laser_on = "🔴 Lasers ON",
+		laser_off = "Lasers OFF",
 	},
 }
 

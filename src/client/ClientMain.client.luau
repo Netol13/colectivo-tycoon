@@ -117,6 +117,10 @@ Net.event("EventState").OnClientEvent:Connect(function(active: boolean, mult: nu
 	end
 end)
 
+Net.event("LaserToggle").OnClientEvent:Connect(function(on: boolean)
+	Hud.notify(Locale.get(on and "laser_on" or "laser_off"), on and "good" or "info")
+end)
+
 -- ── Recompensa diaria (atributos que setea el servidor) ─────────────────
 local dailyPulse: Tween? = nil
 local function updateDaily()
