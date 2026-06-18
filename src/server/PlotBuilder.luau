@@ -267,20 +267,21 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 	collector.CFrame = origin * CFrame.new(0, 2, 30)
 	collector.Parent = model
 
-	-- Monitor: pantalla parada que muestra la plata acumulada.
+	-- Monitor + pad de cobro en el COSTADO DERECHO despejado (NO entre las pistas).
+	local cobroX = plotWidth / 2 - 5
 	local monitor = part({
-		Size = Vector3.new(13, 6.5, 0.6),
+		Size = Vector3.new(0.6, 6.5, 13),
 		Color = Color3.fromRGB(14, 17, 22),
 		Material = Enum.Material.SmoothPlastic,
 	})
-	monitor.CFrame = origin * CFrame.new(0, 8.5, 31) * CFrame.Angles(math.rad(-10), 0, 0)
+	monitor.CFrame = origin * CFrame.new(cobroX, 8, 4)
 	monitor.Parent = model
 	local marco = part({
-		Size = Vector3.new(13.6, 7.1, 0.4),
+		Size = Vector3.new(0.4, 7.1, 13.6),
 		Color = Theme.Palette.Cash,
 		Material = Enum.Material.Neon,
 	})
-	marco.CFrame = monitor.CFrame * CFrame.new(0, 0, 0.2)
+	marco.CFrame = monitor.CFrame * CFrame.new(0.25, 0, 0)
 	marco.Parent = model
 
 	local pendBB = Instance.new("BillboardGui")
@@ -302,14 +303,14 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 
 	-- Pad de cobro: PISALO para cobrar la plata acumulada.
 	local claimPad = part({
-		Size = Vector3.new(12, 1, 6),
+		Size = Vector3.new(7, 1, 13),
 		Color = Theme.Palette.Cash,
 		Material = Enum.Material.Neon,
 		CanCollide = false,
 		Transparency = 0.1,
 	})
 	claimPad.Name = "ClaimPad"
-	claimPad.CFrame = origin * CFrame.new(0, 0.6, 23)
+	claimPad.CFrame = origin * CFrame.new(cobroX, 0.6, 4)
 	claimPad.Parent = model
 
 	local claimBB = Instance.new("BillboardGui")

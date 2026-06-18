@@ -147,24 +147,18 @@ end
 
 -- ── Mundo: pasto, calle, árboles, ciudad de fondo (todo por código) ────────
 function EnvironmentService.buildWorld()
-	-- Terreno en su propio pcall: si una operación de Terrain falla, igual se
-	-- construyen los árboles/edificios (no se cae todo el mundo como pasó antes).
-	pcall(function()
-		local terrain = Workspace.Terrain
-		terrain.Decoration = false -- saca las briznas altas que atravesaban todo
-		-- Varios bloques chicos: un FillBlock muy grande excede el límite y falla.
-		for bx = -1, 3 do
-			terrain:FillBlock(
-				CFrame.new(bx * 380, GROUND_Y - 10, 0),
-				Vector3.new(400, 20, 440),
-				Enum.Material.Grass
-			)
-		end
-		terrain:SetMaterialColor(Enum.Material.Grass, Theme.Palette.Grass)
-	end)
-
 	local world = Instance.new("Model")
 	world.Name = "World"
+
+	-- Pasto: un Part plano grande con material Grass. Confiable y SIN briznas que
+	-- trepan (antes usaba Terrain, que fallaba y dejaba todo sobre el baseplate).
+	local pasto = makePart({
+		Size = Vector3.new(1950, 2, 1150),
+		Color = Theme.Palette.Grass,
+		Material = Enum.Material.Grass,
+	})
+	pasto.CFrame = CFrame.new(490, GROUND_Y - 1, 0)
+	pasto.Parent = world
 
 	-- Calle de acceso delante de las bases.
 	local street = makePart({
