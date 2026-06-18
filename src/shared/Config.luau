@@ -216,6 +216,32 @@ Config.Ayudante = {
 	IntervaloSeg = 5,
 }
 
+-- ── MISIONES diarias ───────────────────────────────────────────────────
+-- Objetivos que dan plata al completarse. Se reinician cada día (UTC).
+Config.Misiones = {
+	{
+		Id = "m_cobrar",
+		Evento = "earn",
+		Objetivo = 3000,
+		Nombre = "Cobrá $3.000",
+		Recompensa = 800,
+	},
+	{
+		Id = "m_comprar",
+		Evento = "buy_line",
+		Objetivo = 1,
+		Nombre = "Comprá una línea",
+		Recompensa = 500,
+	},
+	{
+		Id = "m_mejorar",
+		Evento = "upgrade",
+		Objetivo = 2,
+		Nombre = "Mejorá 2 líneas",
+		Recompensa = 700,
+	},
+}
+
 -- ── DESBLOQUEOS por progreso (rebirth) ─────────────────────────────────
 -- A más renovaciones, el personaje camina más rápido (y salta más alto).
 Config.Unlocks = {

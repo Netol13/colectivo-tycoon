@@ -24,6 +24,8 @@ local EVENTS = {
 	"OfflineEarnings", -- server -> client: ganancias mientras no estabas
 	"EventState", -- server -> client: evento activo (hora pico, etc.)
 	"LaserToggle", -- server -> client: se prendieron/apagaron los láseres (FX/sonido)
+	"MissionState", -- server -> client: estado de las misiones (lista)
+	"ClaimMission", -- client -> server: reclamar la recompensa de una misión
 }
 
 local folder: Folder

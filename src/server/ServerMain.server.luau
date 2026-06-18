@@ -20,6 +20,7 @@ local RebirthService = require(ServerScriptService:WaitForChild("RebirthService"
 local DailyService = require(ServerScriptService:WaitForChild("DailyService"))
 local EnvironmentService = require(ServerScriptService:WaitForChild("EnvironmentService"))
 local UnlockService = require(ServerScriptService:WaitForChild("UnlockService"))
+local MissionService = require(ServerScriptService:WaitForChild("MissionService"))
 
 -- Lugares fijos donde se construyen los plots (separados para que no se toquen).
 local PLOT_SLOTS = {}
@@ -82,6 +83,7 @@ local function onPlayerAdded(player: Player)
 	-- Construir el plot y arrancar todo.
 	PlotService.setup(player, state)
 	DailyService.push(player)
+	MissionService.push(player)
 
 	-- Llevar al personaje a su plot al spawnear.
 	player.CharacterAdded:Connect(function(char)
@@ -122,6 +124,7 @@ end
 EventService.start()
 RebirthService.start()
 DailyService.start()
+MissionService.start()
 
 -- Refrescar stats (plata/min, meta, si puede renovar) cada segundo.
 task.spawn(function()

@@ -172,3 +172,146 @@ musicBtn.Activated:Connect(function()
 	Audio.setMusicVolume(musicOn and 0.25 or 0)
 	musicBtn.Text = musicOn and "🔊" or "🔇"
 end)
+
+-- ── Panel de misiones ───────────────────────────────────────────────────
+local hudGui = player:WaitForChild("PlayerGui"):WaitForChild("HUD")
+
+local misionesBtn = Instance.new("TextButton")
+misionesBtn.Name = "MisionesBtn"
+misionesBtn.Position = UDim2.new(0, 12, 0, 66)
+misionesBtn.Size = UDim2.new(0, 140, 0, 44)
+misionesBtn.BackgroundColor3 = Color3.fromRGB(60, 90, 160)
+misionesBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+misionesBtn.Font = Enum.Font.FredokaOne
+misionesBtn.TextScaled = true
+misionesBtn.Text = "📋 " .. Locale.get("missions")
+misionesBtn.Parent = hudGui
+local mbc = Instance.new("UICorner")
+mbc.CornerRadius = UDim.new(0, 12)
+mbc.Parent = misionesBtn
+
+local panel = Instance.new("Frame")
+panel.Name = "MisionesPanel"
+panel.AnchorPoint = Vector2.new(0.5, 0.5)
+panel.Position = UDim2.new(0.5, 0, 0.5, 0)
+panel.Size = UDim2.new(0, 380, 0, 320)
+panel.BackgroundColor3 = Color3.fromRGB(24, 26, 34)
+panel.BackgroundTransparency = 0.05
+panel.Visible = false
+panel.Parent = hudGui
+local pc = Instance.new("UICorner")
+pc.CornerRadius = UDim.new(0, 16)
+pc.Parent = panel
+
+local titulo = Instance.new("TextLabel")
+titulo.Size = UDim2.new(1, -50, 0, 44)
+titulo.Position = UDim2.new(0, 12, 0, 4)
+titulo.BackgroundTransparency = 1
+titulo.Font = Enum.Font.FredokaOne
+titulo.TextColor3 = Color3.fromRGB(255, 255, 255)
+titulo.TextScaled = true
+titulo.TextXAlignment = Enum.TextXAlignment.Left
+titulo.Text = "📋 " .. Locale.get("missions")
+titulo.Parent = panel
+
+local cerrar = Instance.new("TextButton")
+cerrar.AnchorPoint = Vector2.new(1, 0)
+cerrar.Position = UDim2.new(1, -8, 0, 8)
+cerrar.Size = UDim2.new(0, 36, 0, 36)
+cerrar.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+cerrar.TextColor3 = Color3.fromRGB(255, 255, 255)
+cerrar.Font = Enum.Font.FredokaOne
+cerrar.TextScaled = true
+cerrar.Text = "X"
+cerrar.Parent = panel
+local cc2 = Instance.new("UICorner")
+cc2.CornerRadius = UDim.new(0, 10)
+cc2.Parent = cerrar
+cerrar.Activated:Connect(function()
+	panel.Visible = false
+end)
+
+local lista = Instance.new("Frame")
+lista.Name = "Lista"
+lista.Position = UDim2.new(0, 12, 0, 54)
+lista.Size = UDim2.new(1, -24, 1, -66)
+lista.BackgroundTransparency = 1
+lista.Parent = panel
+local uil = Instance.new("UIListLayout")
+uil.Padding = UDim.new(0, 8)
+uil.Parent = lista
+
+misionesBtn.Activated:Connect(function()
+	panel.Visible = not panel.Visible
+end)
+
+local function renderMisiones(list)
+	for _, c in ipairs(lista:GetChildren()) do
+		if c:IsA("Frame") then
+			c:Destroy()
+		end
+	end
+	for _, m in ipairs(list) do
+		local row = Instance.new("Frame")
+		row.Size = UDim2.new(1, 0, 0, 62)
+		row.BackgroundColor3 = Color3.fromRGB(38, 40, 50)
+		row.Parent = lista
+		local rc = Instance.new("UICorner")
+		rc.CornerRadius = UDim.new(0, 10)
+		rc.Parent = row
+
+		local nm = Instance.new("TextLabel")
+		nm.Size = UDim2.new(1, -12, 0, 26)
+		nm.Position = UDim2.new(0, 8, 0, 4)
+		nm.BackgroundTransparency = 1
+		nm.Font = Enum.Font.GothamBold
+		nm.TextColor3 = Color3.fromRGB(255, 255, 255)
+		nm.TextScaled = true
+		nm.TextXAlignment = Enum.TextXAlignment.Left
+		nm.Text = m.nombre .. "  (+$" .. m.recompensa .. ")"
+		nm.Parent = row
+
+		local barBg = Instance.new("Frame")
+		barBg.Size = UDim2.new(1, -96, 0, 16)
+		barBg.Position = UDim2.new(0, 8, 0, 36)
+		barBg.BackgroundColor3 = Color3.fromRGB(20, 22, 28)
+		barBg.Parent = row
+		local bbc = Instance.new("UICorner")
+		bbc.CornerRadius = UDim.new(0, 8)
+		bbc.Parent = barBg
+		local fill = Instance.new("Frame")
+		fill.Size = UDim2.new(math.clamp(m.progreso / m.objetivo, 0, 1), 0, 1, 0)
+		fill.BackgroundColor3 = Color3.fromRGB(95, 220, 120)
+		fill.Parent = barBg
+		local fc = Instance.new("UICorner")
+		fc.CornerRadius = UDim.new(0, 8)
+		fc.Parent = fill
+
+		local rec = Instance.new("TextButton")
+		rec.AnchorPoint = Vector2.new(1, 1)
+		rec.Position = UDim2.new(1, -6, 1, -6)
+		rec.Size = UDim2.new(0, 80, 0, 26)
+		rec.Font = Enum.Font.FredokaOne
+		rec.TextScaled = true
+		rec.TextColor3 = Color3.fromRGB(255, 255, 255)
+		rec.Parent = row
+		local rcc = Instance.new("UICorner")
+		rcc.CornerRadius = UDim.new(0, 8)
+		rcc.Parent = rec
+		if m.reclamada then
+			rec.Text = "✓"
+			rec.BackgroundColor3 = Color3.fromRGB(60, 80, 60)
+		elseif m.reclamable then
+			rec.Text = Locale.get("claim")
+			rec.BackgroundColor3 = Color3.fromRGB(70, 170, 90)
+			rec.Activated:Connect(function()
+				Net.event("ClaimMission"):FireServer(m.id)
+			end)
+		else
+			rec.Text = m.progreso .. "/" .. m.objetivo
+			rec.BackgroundColor3 = Color3.fromRGB(60, 64, 78)
+		end
+	end
+end
+
+Net.event("MissionState").OnClientEvent:Connect(renderMisiones)

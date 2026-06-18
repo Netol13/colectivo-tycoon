@@ -10,6 +10,7 @@ local Net = require(ReplicatedStorage:WaitForChild("Net"))
 local PlayerState = require(script.Parent:WaitForChild("PlayerState"))
 local Stats = require(script.Parent:WaitForChild("Stats"))
 local StepPad = require(script.Parent:WaitForChild("StepPad"))
+local MissionService = require(script.Parent:WaitForChild("MissionService"))
 
 local CollectService = {}
 
@@ -34,6 +35,7 @@ function CollectService.bind(player: Player, plot: any, plata: IntValue, data: a
 		data.Cash = plata.Value
 		Net.event("CollectFX"):FireClient(player, plot.collector.Position, amt, false)
 		Stats.update(player)
+		MissionService.report(player, "earn", amt)
 	end)
 end
 

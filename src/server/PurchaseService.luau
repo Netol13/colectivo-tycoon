@@ -10,6 +10,7 @@ local Net = require(ReplicatedStorage:WaitForChild("Net"))
 local TycoonService = require(script.Parent:WaitForChild("TycoonService"))
 local Stats = require(script.Parent:WaitForChild("Stats"))
 local StepPad = require(script.Parent:WaitForChild("StepPad"))
+local MissionService = require(script.Parent:WaitForChild("MissionService"))
 
 local PurchaseService = {}
 
@@ -56,6 +57,7 @@ function PurchaseService.bind(player: Player, plot: any, plata: IntValue, data: 
 			Net.event("PurchaseFX"):FireClient(player, pos, lineaCfg.Color)
 			Net.event("Notify"):FireClient(player, "bought", "good", lineaCfg.Nombre)
 			Stats.update(player)
+			MissionService.report(player, "buy_line", 1)
 		end)
 	end
 end

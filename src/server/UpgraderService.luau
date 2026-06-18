@@ -10,6 +10,7 @@ local Config = require(ReplicatedStorage:WaitForChild("Config"))
 local Net = require(ReplicatedStorage:WaitForChild("Net"))
 local Stats = require(ServerScriptService:WaitForChild("Stats"))
 local StepPad = require(ServerScriptService:WaitForChild("StepPad"))
+local MissionService = require(ServerScriptService:WaitForChild("MissionService"))
 
 local UpgraderService = {}
 
@@ -55,6 +56,7 @@ function UpgraderService.bind(player: Player, plot: any, plata: IntValue, data: 
 			Net.event("PurchaseFX"):FireClient(player, refs.upgradePad.Position, lineaCfg.Color)
 			Net.event("Notify"):FireClient(player, "upgraded", "good", lineaCfg.Nombre)
 			Stats.update(player)
+			MissionService.report(player, "upgrade", 1)
 		end)
 	end
 end
