@@ -46,7 +46,27 @@ Todo esto ya está en el código y andando:
 - **Bilingüe ES/EN:** detecta el idioma del jugador. `src/shared/Locale.luau`.
 - **Balance centralizado:** todo en `src/shared/Config.luau`.
 
+## ✅ Implementado (tanda 2 — gameplay tycoon)
+
+- **Minicolectivos** (`BusModel`) que viajan por la ruta con tween (anclados, sin
+  física): reemplazan las pelotas, no laguean ni se vuelcan.
+- **Cobro manual** (`CollectService`): la plata se acumula en la terminal (cartel
+  con el total) y se cobra acercándose y apretando el prompt. Es la base del robo.
+- **Construcción** (`BuildService`): muros, luces, cartel, puerta y cobrador,
+  comprables con pads que aparecen según sus requisitos; se guardan en `Owned` y
+  se reconstruyen al volver o tras rebirth.
+- **Puerta con láseres on/off** (`LaserService`) + atributo `Locked` en el plot
+  (que la capa de robo usará para "base protegida").
+- **Cobrador automático** (`HelperService`): cobra la terminal solo cada 5s.
+- **Leaderboard nativo**: `Renov.` en leaderstats → todos ven la plata y las
+  renovaciones de cada jugador del servidor.
+- **Skins de bus por rebirth** (brillan a partir de 3 renovaciones).
+
 ## 🔜 Lo más importante que falta: la capa de ROBO
+
+> Ya está la base lista: la plata vive **acumulada** en la terminal (robable) y
+> el atributo `Locked` de la puerta decide si tu base está protegida.
+
 
 Es el gancho viral y por eso es la próxima gran feature. **No la hice de noche a
 propósito** porque necesita pruebas multijugador reales (dos jugadores en el mismo
