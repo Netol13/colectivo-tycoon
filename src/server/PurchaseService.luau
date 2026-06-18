@@ -9,6 +9,7 @@ local Config = require(ReplicatedStorage:WaitForChild("Config"))
 local Net = require(ReplicatedStorage:WaitForChild("Net"))
 local TycoonService = require(script.Parent:WaitForChild("TycoonService"))
 local Stats = require(script.Parent:WaitForChild("Stats"))
+local StepPad = require(script.Parent:WaitForChild("StepPad"))
 
 local PurchaseService = {}
 
@@ -32,15 +33,7 @@ function PurchaseService.bind(player: Player, plot: any, plata: IntValue, data: 
 			continue
 		end
 
-		local cd = refs.boton:FindFirstChildOfClass("ClickDetector")
-		if not cd then
-			continue
-		end
-
-		cd.MouseClick:Connect(function(clicker: Player)
-			if clicker ~= player then
-				return
-			end
+		StepPad.onStep(refs.boton, player, function()
 			if data.Owned[lineaCfg.Id] then
 				return
 			end

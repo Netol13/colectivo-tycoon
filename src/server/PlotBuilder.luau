@@ -31,17 +31,16 @@ local function makeBuyPad(
 	precio: number,
 	tinte: Color3
 ): Part
+	-- Pad PLANO que se pisa (sin colisión: lo atravesás al caminar y dispara).
 	local boton = part({
-		Size = Vector3.new(5, 3, 5),
+		Size = Vector3.new(6, 1, 6),
 		Color = Color3.fromRGB(28, 28, 34),
 		Material = Enum.Material.Neon,
+		CanCollide = false,
+		Transparency = 0.15,
 	})
 	boton.CFrame = cframe
 	boton.Parent = model
-
-	local cd = Instance.new("ClickDetector")
-	cd.MaxActivationDistance = 40
-	cd.Parent = boton
 
 	local hl = Instance.new("Highlight")
 	hl.FillColor = tinte
@@ -258,46 +257,76 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 	spawn.Color = Color3.fromRGB(235, 235, 235)
 	spawn.Parent = model
 
-	-- Terminal / caja: acá se ACUMULA la plata y se cobra a mano.
+	-- Terminal: caja sólida donde se junta la plata.
 	local collector = part({
-		Size = Vector3.new(plotWidth, 5, 4),
-		Color = Color3.fromRGB(255, 200, 40),
-		Material = Enum.Material.Neon,
-		Transparency = 0.2,
+		Size = Vector3.new(plotWidth, 4, 5),
+		Color = Theme.Palette.Dark,
+		Material = Enum.Material.Metal,
 	})
 	collector.Name = "Terminal"
-	collector.CFrame = origin * CFrame.new(0, 2.5, 30)
+	collector.CFrame = origin * CFrame.new(0, 2, 30)
 	collector.Parent = model
 
-	-- Cartel con la plata acumulada lista para cobrar.
+	-- Monitor: pantalla parada que muestra la plata acumulada.
+	local monitor = part({
+		Size = Vector3.new(13, 6.5, 0.6),
+		Color = Color3.fromRGB(14, 17, 22),
+		Material = Enum.Material.SmoothPlastic,
+	})
+	monitor.CFrame = origin * CFrame.new(0, 8.5, 31) * CFrame.Angles(math.rad(-10), 0, 0)
+	monitor.Parent = model
+	local marco = part({
+		Size = Vector3.new(13.6, 7.1, 0.4),
+		Color = Theme.Palette.Cash,
+		Material = Enum.Material.Neon,
+	})
+	marco.CFrame = monitor.CFrame * CFrame.new(0, 0, 0.2)
+	marco.Parent = model
+
 	local pendBB = Instance.new("BillboardGui")
-	pendBB.Adornee = collector
-	pendBB.Size = UDim2.fromScale(6, 2)
-	pendBB.StudsOffset = Vector3.new(0, 4, 0)
-	pendBB.AlwaysOnTop = true
-	pendBB.Parent = collector
+	pendBB.Adornee = monitor
+	pendBB.Size = UDim2.fromScale(9, 3.5)
+	pendBB.MaxDistance = 150
+	pendBB.Parent = monitor
 
 	local pendingLabel = Instance.new("TextLabel")
 	pendingLabel.Name = "Pending"
 	pendingLabel.Size = UDim2.fromScale(1, 1)
 	pendingLabel.BackgroundTransparency = 1
 	pendingLabel.Font = Enum.Font.FredokaOne
-	pendingLabel.TextColor3 = Color3.fromRGB(255, 235, 130)
-	pendingLabel.TextStrokeTransparency = 0.3
+	pendingLabel.TextColor3 = Theme.Palette.Cash
+	pendingLabel.TextStrokeTransparency = 0.4
 	pendingLabel.TextScaled = true
 	pendingLabel.Text = "$0"
 	pendingLabel.Parent = pendBB
 
-	-- Prompt para cobrar (instantáneo: ideal para celular).
-	local claimPrompt = Instance.new("ProximityPrompt")
-	claimPrompt.Name = "ClaimPrompt"
-	claimPrompt.ActionText = "Cobrar"
-	claimPrompt.ObjectText = "Terminal"
-	claimPrompt.HoldDuration = 0
-	claimPrompt.MaxActivationDistance = 16
-	claimPrompt.RequiresLineOfSight = false
-	claimPrompt.KeyboardKeyCode = Enum.KeyCode.E
-	claimPrompt.Parent = collector
+	-- Pad de cobro: PISALO para cobrar la plata acumulada.
+	local claimPad = part({
+		Size = Vector3.new(12, 1, 6),
+		Color = Theme.Palette.Cash,
+		Material = Enum.Material.Neon,
+		CanCollide = false,
+		Transparency = 0.1,
+	})
+	claimPad.Name = "ClaimPad"
+	claimPad.CFrame = origin * CFrame.new(0, 0.6, 23)
+	claimPad.Parent = model
+
+	local claimBB = Instance.new("BillboardGui")
+	claimBB.Adornee = claimPad
+	claimBB.Size = UDim2.fromScale(6, 1.6)
+	claimBB.StudsOffset = Vector3.new(0, 2.2, 0)
+	claimBB.AlwaysOnTop = true
+	claimBB.Parent = claimPad
+	local claimTL = Instance.new("TextLabel")
+	claimTL.Size = UDim2.fromScale(1, 1)
+	claimTL.BackgroundTransparency = 1
+	claimTL.Font = Enum.Font.FredokaOne
+	claimTL.TextColor3 = Color3.fromRGB(255, 255, 255)
+	claimTL.TextStrokeTransparency = 0.3
+	claimTL.TextScaled = true
+	claimTL.Text = "COBRAR 💵"
+	claimTL.Parent = claimBB
 
 	local pasajes = Instance.new("Folder")
 	pasajes.Name = "Pasajes"
@@ -308,13 +337,29 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 	for i, lineaCfg in ipairs(Config.Lineas) do
 		local x = startX + (i - 1) * SPACING
 
-		local dropper = part({
-			Size = Vector3.new(6, 6, 6),
+		-- "Estación": un portal del color de la línea de donde sale el colectivo.
+		local posteIzq = part({
+			Size = Vector3.new(1.4, 8, 1.4),
 			Color = lineaCfg.Color,
 			Material = Enum.Material.Metal,
 		})
-		dropper.CFrame = origin * CFrame.new(x, 4, -30)
-		dropper.Parent = model
+		posteIzq.CFrame = origin * CFrame.new(x - 4, 4, -30)
+		posteIzq.Parent = model
+		local posteDer = part({
+			Size = Vector3.new(1.4, 8, 1.4),
+			Color = lineaCfg.Color,
+			Material = Enum.Material.Metal,
+		})
+		posteDer.CFrame = origin * CFrame.new(x + 4, 4, -30)
+		posteDer.Parent = model
+		local dintel = part({
+			Size = Vector3.new(10, 2, 3),
+			Color = lineaCfg.Color:Lerp(Color3.fromRGB(255, 255, 255), 0.15),
+			Material = Enum.Material.Neon,
+		})
+		dintel.CFrame = origin * CFrame.new(x, 9, -30)
+		dintel.Parent = model
+		local dropper = dintel -- referencia visual de la estación
 
 		-- Pista PLANA (calle) por la que viaja el colectivo hasta la terminal.
 		-- Misma altura en los dos extremos = sin pendiente.
@@ -353,43 +398,13 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 		}
 
 		if lineaCfg.Precio > 0 then
-			local boton = part({
-				Size = Vector3.new(6, 3, 6),
-				Color = Color3.fromRGB(28, 28, 34),
-				Material = Enum.Material.Neon,
-			})
-			boton.CFrame = origin * CFrame.new(x, 1.5, -38)
-			boton.Parent = model
-
-			local cd = Instance.new("ClickDetector")
-			cd.MaxActivationDistance = 40
-			cd.Parent = boton
-
-			-- Brillo verde para que se note que es comprable (FTUE).
-			local highlight = Instance.new("Highlight")
-			highlight.FillColor = Color3.fromRGB(60, 220, 90)
-			highlight.FillTransparency = 0.6
-			highlight.OutlineColor = Color3.fromRGB(120, 255, 150)
-			highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-			highlight.Parent = boton
-
-			local bb = Instance.new("BillboardGui")
-			bb.Size = UDim2.fromScale(7, 2.5)
-			bb.StudsOffset = Vector3.new(0, 3.5, 0)
-			bb.AlwaysOnTop = true
-			bb.Parent = boton
-
-			local tl = Instance.new("TextLabel")
-			tl.Size = UDim2.fromScale(1, 1)
-			tl.BackgroundTransparency = 1
-			tl.TextColor3 = Color3.fromRGB(255, 255, 255)
-			tl.TextStrokeTransparency = 0.3
-			tl.TextScaled = true
-			tl.Font = Enum.Font.FredokaOne
-			tl.Text = string.format("%s\n$%d", lineaCfg.Nombre, lineaCfg.Precio)
-			tl.Parent = bb
-
-			refs.boton = boton
+			refs.boton = makeBuyPad(
+				model,
+				origin * CFrame.new(x, 0.6, -38),
+				lineaCfg.Nombre,
+				lineaCfg.Precio,
+				Color3.fromRGB(60, 220, 90)
+			)
 		end
 
 		lineas[lineaCfg.Id] = refs
@@ -398,7 +413,7 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 	-- Pads de compra de construcciones (columna al costado izquierdo del plot).
 	local buildPads: { [string]: any } = {}
 	for i, buildCfg in ipairs(Config.Builds) do
-		local padCF = origin * CFrame.new(-34, 1.5, -26 + (i - 1) * 7)
+		local padCF = origin * CFrame.new(-34, 0.6, -26 + (i - 1) * 7)
 		buildPads[buildCfg.Id] =
 			makeBuyPad(model, padCF, buildCfg.Nombre, buildCfg.Precio, Color3.fromRGB(80, 160, 240))
 	end
@@ -410,7 +425,7 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 		spawn = spawn,
 		collector = collector,
 		pendingLabel = pendingLabel,
-		claimPrompt = claimPrompt,
+		claimPad = claimPad,
 		pasajes = pasajes,
 		lineas = lineas,
 		builds = {}, -- estructuras materializadas (se llenan al comprar/reconstruir)

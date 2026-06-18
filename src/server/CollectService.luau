@@ -9,18 +9,17 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Net = require(ReplicatedStorage:WaitForChild("Net"))
 local PlayerState = require(script.Parent:WaitForChild("PlayerState"))
 local Stats = require(script.Parent:WaitForChild("Stats"))
+local StepPad = require(script.Parent:WaitForChild("StepPad"))
 
 local CollectService = {}
 
 function CollectService.bind(player: Player, plot: any, plata: IntValue, data: any)
-	local prompt = plot.claimPrompt
-	if not prompt then
+	local pad = plot.claimPad
+	if not pad then
 		return
 	end
-	prompt.Triggered:Connect(function(plr: Player)
-		if plr ~= player then
-			return -- solo el dueño cobra su terminal
-		end
+	-- Pisás el pad de cobro y se cobra toda la plata acumulada.
+	StepPad.onStep(pad, player, function()
 		local state = PlayerState.get(player)
 		if not state then
 			return

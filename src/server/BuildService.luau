@@ -13,6 +13,7 @@ local PlotBuilder = require(ServerScriptService:WaitForChild("PlotBuilder"))
 local LaserService = require(ServerScriptService:WaitForChild("LaserService"))
 local HelperService = require(ServerScriptService:WaitForChild("HelperService"))
 local Stats = require(ServerScriptService:WaitForChild("Stats"))
+local StepPad = require(ServerScriptService:WaitForChild("StepPad"))
 
 local BuildService = {}
 
@@ -84,12 +85,9 @@ function BuildService.bind(player: Player, plot: any, plata: IntValue, data: any
 			end
 		else
 			local pad = plot.buildPads[buildCfg.Id]
-			local cd = pad and pad:FindFirstChildOfClass("ClickDetector")
-			if cd then
-				cd.MouseClick:Connect(function(clicker: Player)
-					if clicker == player then
-						BuildService.buy(player, plot, plata, data, buildCfg)
-					end
+			if pad then
+				StepPad.onStep(pad, player, function()
+					BuildService.buy(player, plot, plata, data, buildCfg)
 				end)
 			end
 		end
