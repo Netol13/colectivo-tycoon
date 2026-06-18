@@ -284,11 +284,14 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 	marco.CFrame = monitor.CFrame * CFrame.new(0.25, 0, 0)
 	marco.Parent = model
 
-	local pendBB = Instance.new("BillboardGui")
-	pendBB.Adornee = monitor
-	pendBB.Size = UDim2.fromScale(9, 3.5)
-	pendBB.MaxDistance = 150
-	pendBB.Parent = monitor
+	-- Display PEGADO a la pantalla (SurfaceGui), no un cartel que flota encima.
+	local screen = Instance.new("SurfaceGui")
+	screen.Name = "Display"
+	screen.Face = Enum.NormalId.Left -- la cara que mira al centro del plot
+	screen.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	screen.PixelsPerStud = 40
+	screen.Adornee = monitor
+	screen.Parent = monitor
 
 	local pendingLabel = Instance.new("TextLabel")
 	pendingLabel.Name = "Pending"
@@ -296,10 +299,9 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 	pendingLabel.BackgroundTransparency = 1
 	pendingLabel.Font = Enum.Font.FredokaOne
 	pendingLabel.TextColor3 = Theme.Palette.Cash
-	pendingLabel.TextStrokeTransparency = 0.4
 	pendingLabel.TextScaled = true
 	pendingLabel.Text = "$0"
-	pendingLabel.Parent = pendBB
+	pendingLabel.Parent = screen
 
 	-- Pad de cobro: PISALO para cobrar la plata acumulada.
 	local claimPad = part({

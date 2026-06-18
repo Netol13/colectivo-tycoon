@@ -145,6 +145,50 @@ local function makeBuilding(parent: Instance, x: number, z: number)
 	end
 end
 
+-- Montaña low-poly: bloque de roca grande con un pico nevado encima.
+local function makeMountain(parent: Instance, cx: number, cz: number)
+	local h = 110 + math.random() * 150
+	local w = 95 + math.random() * 100
+	local m = makePart({
+		Size = Vector3.new(w, h, w),
+		Color = Color3.fromRGB(92, 104, 86):Lerp(Color3.fromRGB(122, 126, 118), math.random()),
+		Material = Enum.Material.Rock,
+		CanCollide = false,
+		CanQuery = false,
+	})
+	m.CFrame = CFrame.new(cx, GROUND_Y + h / 2 - 14, cz)
+		* CFrame.Angles(
+			math.rad((math.random() - 0.5) * 14),
+			math.random() * 6.28,
+			math.rad((math.random() - 0.5) * 14)
+		)
+	m.Parent = parent
+
+	-- Pico nevado (un cubo rotado 45° hace de punta).
+	local snow = makePart({
+		Size = Vector3.new(w * 0.55, w * 0.55, w * 0.55),
+		Color = Color3.fromRGB(236, 242, 250),
+		Material = Enum.Material.Glacier,
+		CanCollide = false,
+		CanQuery = false,
+	})
+	snow.CFrame = m.CFrame
+		* CFrame.new(0, h / 2 - w * 0.12, 0)
+		* CFrame.Angles(math.rad(45), 0, math.rad(45))
+	snow.Parent = parent
+end
+
+-- Anillo de montañas que encierra el mapa (como un valle entre montañas).
+local function buildMountains(parent: Instance)
+	local count = 46
+	for i = 1, count do
+		local angle = (i / count) * math.pi * 2
+		local rx = 830 + (math.random() - 0.5) * 170
+		local rz = 470 + (math.random() - 0.5) * 130
+		makeMountain(parent, 490 + math.cos(angle) * rx, math.sin(angle) * rz)
+	end
+end
+
 -- ── Mundo: pasto, calle, árboles, ciudad de fondo (todo por código) ────────
 function EnvironmentService.buildWorld()
 	local world = Instance.new("Model")
@@ -197,6 +241,9 @@ function EnvironmentService.buildWorld()
 		local z = side * (340 + math.random() * 180)
 		makeBuilding(world, x, z)
 	end
+
+	-- Montañas que rodean todo (valle entre montañas).
+	buildMountains(world)
 
 	world.Parent = Workspace
 end
