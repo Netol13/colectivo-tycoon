@@ -19,6 +19,7 @@ local EventService = require(ServerScriptService:WaitForChild("EventService"))
 local RebirthService = require(ServerScriptService:WaitForChild("RebirthService"))
 local DailyService = require(ServerScriptService:WaitForChild("DailyService"))
 local EnvironmentService = require(ServerScriptService:WaitForChild("EnvironmentService"))
+local UnlockService = require(ServerScriptService:WaitForChild("UnlockService"))
 
 -- Lugares fijos donde se construyen los plots (separados para que no se toquen).
 local PLOT_SLOTS = {}
@@ -83,9 +84,10 @@ local function onPlayerAdded(player: Player)
 	DailyService.push(player)
 
 	-- Llevar al personaje a su plot al spawnear.
-	player.CharacterAdded:Connect(function()
+	player.CharacterAdded:Connect(function(char)
 		task.wait(0.2)
 		teleport(player)
+		UnlockService.applyTo(player, char)
 	end)
 	if player.Character then
 		teleport(player)

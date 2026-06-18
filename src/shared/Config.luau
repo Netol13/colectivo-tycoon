@@ -205,6 +205,14 @@ Config.Ayudante = {
 	IntervaloSeg = 5,
 }
 
+-- ── DESBLOQUEOS por progreso (rebirth) ─────────────────────────────────
+-- A más renovaciones, el personaje camina más rápido (y salta más alto).
+Config.Unlocks = {
+	VelocidadBase = 16,
+	VelocidadPorRenov = 2.5,
+	VelocidadTope = 32,
+}
+
 -- ── AUDIO ──────────────────────────────────────────────────────────────
 -- IDs de sonido del Creator Store. El de cobro está verificado; los demás
 -- conviene reemplazarlos insertando audio desde el Toolbox de Studio

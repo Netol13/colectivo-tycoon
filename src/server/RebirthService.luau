@@ -13,6 +13,7 @@ local Format = require(ReplicatedStorage:WaitForChild("Format"))
 local PlayerState = require(ServerScriptService:WaitForChild("PlayerState"))
 local PlotService = require(ServerScriptService:WaitForChild("PlotService"))
 local Stats = require(ServerScriptService:WaitForChild("Stats"))
+local UnlockService = require(ServerScriptService:WaitForChild("UnlockService"))
 
 local RebirthService = {}
 
@@ -52,6 +53,7 @@ function RebirthService.start()
 
 		PlotService.rebuild(player)
 		Stats.update(player)
+		UnlockService.refresh(player) -- aplica la velocidad nueva al instante
 		Net.event("RebirthFX"):FireClient(player, data.Renovaciones + 1) -- nivel = renovaciones + 1
 	end)
 end
