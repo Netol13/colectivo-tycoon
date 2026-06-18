@@ -32,6 +32,7 @@ local PROFILE_TEMPLATE = {
 	DailyLastDay = 0, -- número de día (UTC) del último reclamo
 	LastOnline = 0, -- os.time() del último guardado (para ganancias offline)
 	TutorialDone = false, -- si ya vio la guía inicial
+	Upgrades = {}, -- nivel de mejora por línea: { Linea1 = 2, ... }
 }
 
 -- Pone esto en false (y activa "Studio Access to API Services" en
@@ -58,6 +59,7 @@ local function defaultData()
 		DailyLastDay = 0,
 		LastOnline = 0,
 		TutorialDone = false,
+		Upgrades = {},
 	}
 end
 

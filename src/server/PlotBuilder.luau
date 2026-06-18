@@ -410,6 +410,39 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 			)
 		end
 
+		-- Arco mejorador: el colectivo lo cruza; se ilumina al subir de nivel.
+		local arcoIzq = part({
+			Size = Vector3.new(0.8, 9, 0.8),
+			Color = lineaCfg.Color,
+			Material = Enum.Material.Metal,
+		})
+		arcoIzq.CFrame = origin * CFrame.new(x - 4.5, 4.5, 0)
+		arcoIzq.Parent = model
+		local arcoDer = part({
+			Size = Vector3.new(0.8, 9, 0.8),
+			Color = lineaCfg.Color,
+			Material = Enum.Material.Metal,
+		})
+		arcoDer.CFrame = origin * CFrame.new(x + 4.5, 4.5, 0)
+		arcoDer.Parent = model
+		local arco = part({
+			Size = Vector3.new(10, 1, 1.5),
+			Color = lineaCfg.Color,
+			Material = Enum.Material.SmoothPlastic,
+		})
+		arco.CFrame = origin * CFrame.new(x, 9, 0)
+		arco.Parent = model
+		refs.arco = arco
+
+		-- Pad para MEJORAR la línea (pisás cerca de su estación).
+		refs.upgradePad = makeBuyPad(
+			model,
+			origin * CFrame.new(x, 0.6, -24),
+			"Mejorar",
+			Config.Upgraders.Niveles[1].Precio,
+			Color3.fromRGB(255, 180, 60)
+		)
+
 		lineas[lineaCfg.Id] = refs
 	end
 

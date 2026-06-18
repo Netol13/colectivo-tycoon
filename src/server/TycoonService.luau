@@ -12,6 +12,7 @@ local Format = require(ReplicatedStorage:WaitForChild("Format"))
 local EventService = require(script.Parent:WaitForChild("EventService"))
 local BusModel = require(script.Parent:WaitForChild("BusModel"))
 local PlayerState = require(script.Parent:WaitForChild("PlayerState"))
+local UpgraderService = require(script.Parent:WaitForChild("UpgraderService"))
 
 local TycoonService = {}
 
@@ -37,7 +38,9 @@ local function spawnBus(player: Player, plot: any, refs: any, lineaCfg: any, dat
 	refs.live += 1
 
 	local color = EventService.isActive() and Config.Evento.TinteColor or lineaCfg.Color
-	local bus = BusModel.build(color, lineaCfg.ValorPasaje, data.Renovaciones)
+	local valorBus =
+		math.floor(lineaCfg.ValorPasaje * UpgraderService.multiplier(data, lineaCfg.Id))
+	local bus = BusModel.build(color, valorBus, data.Renovaciones)
 	bus:PivotTo(refs.busStart)
 	bus.Parent = plot.pasajes
 
@@ -60,7 +63,7 @@ local function spawnBus(player: Player, plot: any, refs: any, lineaCfg: any, dat
 		refs.live -= 1
 		cfv:Destroy()
 		if plot.model.Parent ~= nil then
-			onArrive(player, plot, lineaCfg.ValorPasaje, data)
+			onArrive(player, plot, valorBus, data)
 		end
 		bus:Destroy()
 	end)

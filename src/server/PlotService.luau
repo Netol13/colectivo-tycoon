@@ -12,6 +12,7 @@ local CollectService = require(ServerScriptService:WaitForChild("CollectService"
 local BuildService = require(ServerScriptService:WaitForChild("BuildService"))
 local LaserService = require(ServerScriptService:WaitForChild("LaserService"))
 local HelperService = require(ServerScriptService:WaitForChild("HelperService"))
+local UpgraderService = require(ServerScriptService:WaitForChild("UpgraderService"))
 local PlayerState = require(ServerScriptService:WaitForChild("PlayerState"))
 local Stats = require(ServerScriptService:WaitForChild("Stats"))
 
@@ -34,6 +35,7 @@ function PlotService.setup(player: Player, state: any): any
 	PurchaseService.bind(player, plot, state.plata, state.data)
 	CollectService.bind(player, plot, state.plata, state.data)
 	BuildService.bind(player, plot, state.plata, state.data)
+	UpgraderService.bind(player, plot, state.plata, state.data)
 	LaserService.setup(player, plot)
 	HelperService.setup(player, plot, state.data)
 	teleport(player, plot)

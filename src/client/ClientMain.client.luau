@@ -150,3 +150,25 @@ task.delay(1.5, function()
 		Hud.showOffline(earned)
 	end
 end)
+
+-- ── Botón de música (mute / unmute) ─────────────────────────────────────
+local musicOn = true
+local musicBtn = Instance.new("TextButton")
+musicBtn.Name = "Music"
+musicBtn.Position = UDim2.new(0, 12, 0, 12)
+musicBtn.Size = UDim2.new(0, 46, 0, 46)
+musicBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+musicBtn.BackgroundTransparency = 0.2
+musicBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+musicBtn.Font = Enum.Font.FredokaOne
+musicBtn.TextScaled = true
+musicBtn.Text = "🔊"
+musicBtn.Parent = player:WaitForChild("PlayerGui"):WaitForChild("HUD")
+local mcorner = Instance.new("UICorner")
+mcorner.CornerRadius = UDim.new(0, 12)
+mcorner.Parent = musicBtn
+musicBtn.Activated:Connect(function()
+	musicOn = not musicOn
+	Audio.setMusicVolume(musicOn and 0.25 or 0)
+	musicBtn.Text = musicOn and "🔊" or "🔇"
+end)

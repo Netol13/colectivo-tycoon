@@ -74,6 +74,17 @@ Config.Bus = {
 	MaxEnTransito = 4, -- máximo de colectivos a la vez por línea (cuida el celular)
 }
 
+-- ── UPGRADERS de pista ─────────────────────────────────────────────────
+-- Mejorás una línea (pisás su pad "Mejorar") y su arco multiplica el valor de
+-- los colectivos de esa línea. Cada nivel cuesta más y multiplica más.
+Config.Upgraders = {
+	Niveles = {
+		{ Mult = 1.5, Precio = 200 },
+		{ Mult = 2.2, Precio = 900 },
+		{ Mult = 3.5, Precio = 3500 },
+	},
+}
+
 -- ── REBIRTH ("Renovar Flota") ──────────────────────────────────────────
 -- El loop infinito: reiniciás las líneas a cambio de un multiplicador
 -- permanente. Es lo que evita que el juego "se termine" al comprar todo.
