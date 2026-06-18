@@ -230,13 +230,22 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 	local model = Instance.new("Model")
 	model.Name = "Plot_" .. player.Name
 
-	-- Piso del plot.
+	-- Cimiento: bloque grueso que sobresale del pasto (no queda al ras).
+	local cimiento = part({
+		Size = Vector3.new(plotWidth + 4, 16, 82),
+		Color = Theme.Palette.Dark,
+		Material = Theme.Mat.Wall,
+	})
+	cimiento.CFrame = origin * CFrame.new(0, -8.3, 0)
+	cimiento.Parent = model
+
+	-- Piso del plot (la superficie donde caminás).
 	local base = part({
-		Size = Vector3.new(plotWidth, 1, 78),
+		Size = Vector3.new(plotWidth, 0.6, 78),
 		Color = Theme.Palette.Concrete,
 		Material = Theme.Mat.Wall,
 	})
-	base.CFrame = origin * CFrame.new(0, -0.5, 0)
+	base.CFrame = origin * CFrame.new(0, -0.3, 0)
 	base.Parent = model
 
 	-- Punto de aparición del jugador, en SU plot.
