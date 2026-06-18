@@ -1,26 +1,29 @@
 --!strict
 -- ServerMain.server.luau  (ServerScriptService.ServerMain)
--- Punto de entrada del servidor. Es el unico Script "de verdad" (los demas son
--- ModuleScripts que este requiere). Arma todo cuando entra un jugador y limpia
--- cuando se va.
+-- Punto de entrada del servidor. Arma todo cuando entra un jugador (datos,
+-- plot, offline, daily) y limpia cuando se va. También arranca los servicios
+-- globales (evento Hora Pico, rebirth, daily) y refresca las stats.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Config = require(ReplicatedStorage:WaitForChild("Config"))
-local PlotBuilder = require(ServerScriptService:WaitForChild("PlotBuilder"))
-local TycoonService = require(ServerScriptService:WaitForChild("TycoonService"))
-local PurchaseService = require(ServerScriptService:WaitForChild("PurchaseService"))
 local DataManager = require(ServerScriptService:WaitForChild("DataManager"))
+local PlayerState = require(ServerScriptService:WaitForChild("PlayerState"))
+local PlotService = require(ServerScriptService:WaitForChild("PlotService"))
+local TycoonService = require(ServerScriptService:WaitForChild("TycoonService"))
+local Stats = require(ServerScriptService:WaitForChild("Stats"))
+local OfflineService = require(ServerScriptService:WaitForChild("OfflineService"))
+local EventService = require(ServerScriptService:WaitForChild("EventService"))
+local RebirthService = require(ServerScriptService:WaitForChild("RebirthService"))
+local DailyService = require(ServerScriptService:WaitForChild("DailyService"))
 
--- Lugares fijos donde se construyen los plots, separados 100 studs.
+-- Lugares fijos donde se construyen los plots (separados para que no se toquen).
 local PLOT_SLOTS = {}
 for i = 0, 7 do
-	table.insert(PLOT_SLOTS, { cf = CFrame.new(i * 100, 5, 0), taken = false })
+	table.insert(PLOT_SLOTS, { cf = CFrame.new(i * 140, 5, 0), taken = false })
 end
-
-local plotsByPlayer: { [Player]: any } = {}
 
 local function getFreeSlot()
 	for _, slot in ipairs(PLOT_SLOTS) do
@@ -32,21 +35,25 @@ local function getFreeSlot()
 	return nil
 end
 
-local function teleportToPlot(player: Player, plot: any)
+local function teleport(player: Player)
+	local state = PlayerState.get(player)
+	if not state or not state.plot then
+		return
+	end
 	local char = player.Character
 	if char and char:FindFirstChild("HumanoidRootPart") then
-		char:PivotTo(plot.spawn.CFrame * CFrame.new(0, 4, 0))
+		char:PivotTo(state.plot.spawn.CFrame * CFrame.new(0, 4, 0))
 	end
 end
 
 local function onPlayerAdded(player: Player)
 	local slot = getFreeSlot()
 	if not slot then
-		player:Kick("El servidor esta lleno, proba mas tarde.")
+		player:Kick("El servidor está lleno, probá más tarde.")
 		return
 	end
 
-	-- leaderstats (lo que se ve arriba a la derecha).
+	-- leaderstats + plata.
 	local leaderstats = Instance.new("Folder")
 	leaderstats.Name = "leaderstats"
 	local plata = Instance.new("IntValue")
@@ -54,52 +61,67 @@ local function onPlayerAdded(player: Player)
 	plata.Parent = leaderstats
 	leaderstats.Parent = player
 
-	-- Datos del jugador.
+	-- Datos guardados.
 	local data = DataManager.load(player)
 	plata.Value = data.Cash
 
-	-- Construir su plot.
-	local plot = PlotBuilder.build(player, slot.cf)
-	plot.slot = slot
-	plotsByPlayer[player] = plot
+	-- Ganancias mientras estuvo offline (se guardan en un atributo para mostrar).
+	local earned = OfflineService.apply(data, plata)
+	player:SetAttribute("OfflineEarned", earned)
 
-	-- Que aparezca (y reaparezca) en su propio plot.
-	player.RespawnLocation = plot.spawn
+	-- Estado central del jugador.
+	local state = { slot = slot, plata = plata, data = data, plot = nil }
+	PlayerState.set(player, state)
 
-	-- Arrancar el loop y las compras.
-	TycoonService.start(player, plot, plata, data)
-	PurchaseService.bind(player, plot, plata, data)
+	-- Construir el plot y arrancar todo.
+	PlotService.setup(player, state)
+	DailyService.push(player)
 
-	-- Llevar al personaje a su plot.
+	-- Llevar al personaje a su plot al spawnear.
 	player.CharacterAdded:Connect(function()
 		task.wait(0.2)
-		teleportToPlot(player, plot)
+		teleport(player)
 	end)
 	if player.Character then
-		teleportToPlot(player, plot)
+		teleport(player)
 	end
 end
 
 local function onPlayerRemoving(player: Player)
-	local plot = plotsByPlayer[player]
-	if plot then
-		TycoonService.stop(plot)
-		if plot.slot then
-			plot.slot.taken = false
+	local state = PlayerState.get(player)
+	if state then
+		if state.plot then
+			TycoonService.stop(state.plot)
+			state.plot.model:Destroy()
 		end
-		plot.model:Destroy()
-		plotsByPlayer[player] = nil
+		if state.slot then
+			state.slot.taken = false
+		end
 	end
 	DataManager.release(player)
+	PlayerState.clear(player)
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(onPlayerRemoving)
-
--- Por si algun jugador ya estaba dentro cuando arranco el script.
 for _, player in ipairs(Players:GetPlayers()) do
 	task.spawn(onPlayerAdded, player)
 end
+
+-- Servicios globales.
+EventService.start()
+RebirthService.start()
+DailyService.start()
+
+-- Refrescar stats (plata/min, meta, si puede renovar) cada segundo.
+task.spawn(function()
+	while true do
+		task.wait(1)
+		for player in pairs(PlayerState.all()) do
+			Stats.update(player)
+		end
+	end
+end)
 
 -- Al cerrarse el servidor, guardar a todos.
 game:BindToClose(function()

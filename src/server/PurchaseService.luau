@@ -1,12 +1,14 @@
 --!strict
 -- PurchaseService.luau  (ServerScriptService.PurchaseService)
--- Maneja las compras de lineas nuevas. El cliente solo "pide" comprar
--- (clickea el boton); el SERVIDOR valida que le alcance la plata y que no la
--- tenga ya comprada antes de descontar y activarla.
+-- Maneja la compra de líneas. El cliente solo "pide" (click en el botón); el
+-- SERVIDOR valida que le alcance y que no la tenga ya, descuenta y la activa.
+-- Al comprar, dispara el confeti + sonido y actualiza la meta del jugador.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage:WaitForChild("Config"))
+local Net = require(ReplicatedStorage:WaitForChild("Net"))
 local TycoonService = require(script.Parent:WaitForChild("TycoonService"))
+local Stats = require(script.Parent:WaitForChild("Stats"))
 
 local PurchaseService = {}
 
@@ -17,7 +19,7 @@ function PurchaseService.bind(player: Player, plot: any, plata: IntValue, data: 
 			continue
 		end
 
-		-- Si ya la tenia comprada de antes (cargada del guardado), no hay boton.
+		-- Ya comprada de antes: no hay botón.
 		if data.Owned[lineaCfg.Id] then
 			if refs.boton then
 				refs.boton:Destroy()
@@ -37,24 +39,30 @@ function PurchaseService.bind(player: Player, plot: any, plata: IntValue, data: 
 
 		cd.MouseClick:Connect(function(clicker: Player)
 			if clicker ~= player then
-				return -- solo el dueno del plot puede comprar aca
+				return
 			end
 			if data.Owned[lineaCfg.Id] then
 				return
 			end
 			if plata.Value < lineaCfg.Precio then
-				return -- no le alcanza
+				Net.event("Notify"):FireClient(player, "not_enough", "error")
+				return
 			end
 
 			plata.Value -= lineaCfg.Precio
+			data.Cash = plata.Value
 			data.Owned[lineaCfg.Id] = true
 
+			local pos = refs.boton and refs.boton.Position or plot.collector.Position
 			if refs.boton then
 				refs.boton:Destroy()
 				refs.boton = nil
 			end
 
 			TycoonService.activateLinea(plot, lineaCfg)
+			Net.event("PurchaseFX"):FireClient(player, pos, lineaCfg.Color)
+			Net.event("Notify"):FireClient(player, "bought", "good", lineaCfg.Nombre)
+			Stats.update(player)
 		end)
 	end
 end

@@ -1,18 +1,16 @@
 --!strict
 -- PlotBuilder.luau  (ServerScriptService.PlotBuilder)
--- Construye el plot de un jugador ENTERAMENTE por codigo (no se dibuja a mano
--- en Studio). Asi todo el juego vive en git y, cuando tu amigo hace `git pull`,
--- ve exactamente el mismo plot que vos.
---
--- Devuelve una tabla con referencias a las piezas para que el resto de los
--- servicios (TycoonService, PurchaseService) las usen.
+-- Construye el plot de un jugador ENTERAMENTE por código. Arma un carril por
+-- cada línea del Config (se adapta solo a la cantidad que haya), con su
+-- dropper, su rampa, su botón de compra, y una terminal común que cobra.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage:WaitForChild("Config"))
 
 local PlotBuilder = {}
 
--- Helper: crea un Part anclado con las props que le pasemos.
+local SPACING = 11 -- separación entre carriles (studs)
+
 local function part(props: { [string]: any }): Part
 	local p = Instance.new("Part")
 	p.Anchored = true
@@ -24,26 +22,27 @@ local function part(props: { [string]: any }): Part
 	return p
 end
 
--- Carriles (X relativo al centro del plot) para hasta 3 lineas.
-local LANE_X = { -14, 0, 14 }
-
 function PlotBuilder.build(player: Player, origin: CFrame)
+	local n = #Config.Lineas
+	local startX = -((n - 1) / 2) * SPACING
+	local plotWidth = math.max(46, n * SPACING + 14)
+
 	local model = Instance.new("Model")
 	model.Name = "Plot_" .. player.Name
 
-	-- Piso del plot (es tambien el "suelo" donde camina el jugador).
+	-- Piso del plot.
 	local base = part({
-		Size = Vector3.new(46, 1, 72),
+		Size = Vector3.new(plotWidth, 1, 78),
 		Color = Color3.fromRGB(58, 58, 64),
 		Material = Enum.Material.SmoothPlastic,
 	})
 	base.CFrame = origin * CFrame.new(0, -0.5, 0)
 	base.Parent = model
 
-	-- Punto de aparicion del jugador, en SU plot.
+	-- Punto de aparición del jugador, en SU plot.
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Size = Vector3.new(8, 1, 8)
-	spawn.CFrame = origin * CFrame.new(0, 0.5, -16)
+	spawn.CFrame = origin * CFrame.new(0, 0.5, -20)
 	spawn.Anchored = true
 	spawn.Neutral = true
 	spawn.Duration = 0
@@ -52,7 +51,7 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 
 	-- Terminal / caja: pad ancho al frente que junta los pasajes.
 	local collector = part({
-		Size = Vector3.new(46, 5, 4),
+		Size = Vector3.new(plotWidth, 5, 4),
 		Color = Color3.fromRGB(255, 200, 40),
 		Material = Enum.Material.Neon,
 		Transparency = 0.2,
@@ -60,7 +59,6 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 	collector.CFrame = origin * CFrame.new(0, 2.5, 30)
 	collector.Parent = model
 
-	-- Carpeta donde caen los pasajes generados (asi quedan ordenados).
 	local pasajes = Instance.new("Folder")
 	pasajes.Name = "Pasajes"
 	pasajes.Parent = model
@@ -68,9 +66,8 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 	local lineas: { [string]: any } = {}
 
 	for i, lineaCfg in ipairs(Config.Lineas) do
-		local x = LANE_X[i] or (-14 + (i - 1) * 14)
+		local x = startX + (i - 1) * SPACING
 
-		-- Dropper: la "estacion" desde donde salen los pasajes.
 		local dropper = part({
 			Size = Vector3.new(6, 6, 6),
 			Color = lineaCfg.Color,
@@ -79,22 +76,17 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 		dropper.CFrame = origin * CFrame.new(x, 9, -30)
 		dropper.Parent = model
 
-		-- Rampa (la "ruta"): baja desde el dropper hasta la terminal.
-		-- Los pasajes son pelotitas que ruedan por gravedad.
+		-- Rampa (la "ruta") por la que ruedan los pasajes hasta la terminal.
 		local hi = (origin * CFrame.new(x, 8, -27)).Position
 		local lo = (origin * CFrame.new(x, 2, 26)).Position
 		local mid = hi:Lerp(lo, 0.5)
 		local len = (lo - hi).Magnitude
 		local rampCF = CFrame.lookAt(mid, lo)
 
-		local floor = part({
-			Size = Vector3.new(8, 1, len),
-			Color = Color3.fromRGB(88, 88, 94),
-		})
+		local floor = part({ Size = Vector3.new(8, 1, len), Color = Color3.fromRGB(88, 88, 94) })
 		floor.CFrame = rampCF
 		floor.Parent = model
 
-		-- Paredes laterales para que las pelotitas no se caigan del carril.
 		local wallL =
 			part({ Size = Vector3.new(0.6, 3, len), Color = Color3.fromRGB(120, 120, 126) })
 		wallL.CFrame = rampCF * CFrame.new(-4, 1.5, 0)
@@ -107,7 +99,6 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 
 		local refs: { [string]: any } = { dropper = dropper, activa = false }
 
-		-- Boton de compra (solo para lineas que cuestan plata).
 		if lineaCfg.Precio > 0 then
 			local boton = part({
 				Size = Vector3.new(6, 3, 6),
@@ -118,8 +109,16 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 			boton.Parent = model
 
 			local cd = Instance.new("ClickDetector")
-			cd.MaxActivationDistance = 36
+			cd.MaxActivationDistance = 40
 			cd.Parent = boton
+
+			-- Brillo verde para que se note que es comprable (FTUE).
+			local highlight = Instance.new("Highlight")
+			highlight.FillColor = Color3.fromRGB(60, 220, 90)
+			highlight.FillTransparency = 0.6
+			highlight.OutlineColor = Color3.fromRGB(120, 255, 150)
+			highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+			highlight.Parent = boton
 
 			local bb = Instance.new("BillboardGui")
 			bb.Size = UDim2.fromScale(7, 2.5)
@@ -133,8 +132,8 @@ function PlotBuilder.build(player: Player, origin: CFrame)
 			tl.TextColor3 = Color3.fromRGB(255, 255, 255)
 			tl.TextStrokeTransparency = 0.3
 			tl.TextScaled = true
-			tl.Font = Enum.Font.GothamBold
-			tl.Text = string.format("Comprar %s\n$%d", lineaCfg.Nombre, lineaCfg.Precio)
+			tl.Font = Enum.Font.FredokaOne
+			tl.Text = string.format("%s\n$%d", lineaCfg.Nombre, lineaCfg.Precio)
 			tl.Parent = bb
 
 			refs.boton = boton

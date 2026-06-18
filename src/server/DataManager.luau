@@ -27,6 +27,11 @@ local DataManager = {}
 local PROFILE_TEMPLATE = {
 	Cash = 0,
 	Owned = { Linea1 = true }, -- la Linea 1 viene gratis
+	Renovaciones = 0, -- cuántas veces renovó la flota (rebirth)
+	DailyStreak = 0, -- racha de días seguidos reclamando la recompensa
+	DailyLastDay = 0, -- número de día (UTC) del último reclamo
+	LastOnline = 0, -- os.time() del último guardado (para ganancias offline)
+	TutorialDone = false, -- si ya vio la guía inicial
 }
 
 -- Pone esto en false (y activa "Studio Access to API Services" en
@@ -45,7 +50,15 @@ local profiles: { [Player]: any } = {} -- perfiles activos de ProfileStore
 local fallback: { [Player]: any } = {} -- datos temporales si ProfileStore falla
 
 local function defaultData()
-	return { Cash = 0, Owned = { Linea1 = true } }
+	return {
+		Cash = 0,
+		Owned = { Linea1 = true },
+		Renovaciones = 0,
+		DailyStreak = 0,
+		DailyLastDay = 0,
+		LastOnline = 0,
+		TutorialDone = false,
+	}
 end
 
 -- Carga (o crea) los datos del jugador. SIEMPRE devuelve una tabla de datos.
@@ -109,6 +122,8 @@ function DataManager.save(player: Player)
 			data.Cash = plata.Value
 		end
 	end
+	-- Marca de tiempo para calcular ganancias offline en la próxima sesión.
+	data.LastOnline = os.time()
 	-- ProfileStore guarda solo por autosave y al EndSession; no hace falta forzar.
 end
 
