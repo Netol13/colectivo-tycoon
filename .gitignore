@@ -1,0 +1,17 @@
+# Archivos de lugar de Roblox (los genera Rojo con `rojo build`, NUNCA se commitean)
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
+
+# Sourcemap generado por Rojo / luau-lsp (se regenera solo)
+sourcemap.json
+
+# Paquetes de Wally (solo si en el futuro usan el package manager Wally)
+/Packages
+/ServerPackages
+/DevPackages
+
+# Ruido del sistema / editor
+.DS_Store
+Thumbs.db

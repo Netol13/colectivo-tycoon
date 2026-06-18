@@ -1,0 +1,2 @@
+# Modulo de terceros: no lo reformateamos (se actualiza reemplazando el archivo)
+src/server/ProfileStore.luau
