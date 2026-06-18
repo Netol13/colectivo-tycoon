@@ -44,7 +44,7 @@ function EnvironmentService.setupLighting()
 	atm.Density = 0.34
 	atm.Offset = 0.2
 	atm.Glare = 0.2
-	atm.Haze = 1.4 -- más neblina: difumina los edificios de fondo (que sean skyline)
+	atm.Haze = 0.5 -- neblina leve: difumina lo lejano sin tapar todo
 	atm.Color = Color3.fromRGB(199, 215, 255)
 	atm.Decay = Color3.fromRGB(106, 112, 125)
 	atm.Parent = Lighting
@@ -147,21 +147,24 @@ end
 
 -- ── Mundo: pasto, calle, árboles, ciudad de fondo (todo por código) ────────
 function EnvironmentService.buildWorld()
-	local terrain = Workspace.Terrain
-	terrain.Decoration = false -- saca las briznas altas que atravesaban todo
+	-- Terreno en su propio pcall: si una operación de Terrain falla, igual se
+	-- construyen los árboles/edificios (no se cae todo el mundo como pasó antes).
+	pcall(function()
+		local terrain = Workspace.Terrain
+		terrain.Decoration = false -- saca las briznas altas que atravesaban todo
+		-- Varios bloques chicos: un FillBlock muy grande excede el límite y falla.
+		for bx = -1, 3 do
+			terrain:FillBlock(
+				CFrame.new(bx * 380, GROUND_Y - 10, 0),
+				Vector3.new(400, 20, 440),
+				Enum.Material.Grass
+			)
+		end
+		terrain:SetMaterialColor(Enum.Material.Grass, Theme.Palette.Grass)
+	end)
 
 	local world = Instance.new("Model")
 	world.Name = "World"
-
-	-- Pasto liso (top en GROUND_Y).
-	terrain:FillBlock(
-		CFrame.new(490, GROUND_Y - 10, 0),
-		Vector3.new(2200, 20, 700),
-		Enum.Material.Grass
-	)
-	pcall(function()
-		terrain:SetMaterialColor(Enum.Material.Grass, Theme.Palette.Grass)
-	end)
 
 	-- Calle de acceso delante de las bases.
 	local street = makePart({
